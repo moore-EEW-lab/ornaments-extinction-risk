@@ -1,5 +1,3 @@
-setwd('/Users/michaelmoore/desktop/Working Directory')
-
 library(phytools)
 library(car)
 library(MASS)
@@ -23,28 +21,25 @@ rownames(r.dat) <- r.dat$binom
 r.tree <- read.newick('species.ext.tre')
 
 
-## let's start by taking a pgls approach
-mod00a <- gls(log(risk) ~ m.wing.color + z.MAT, data = r.dat, correlation = corPagel(1, phy = r.tree, fixed = TRUE, form = ~binom))
-mod00b <- gls(log(risk) ~ m.wing.color + z.MAT, data = r.dat, correlation = corPagel(1, phy = r.tree, fixed = FALSE, form = ~binom))
-mod00c <- gls(log(risk) ~ m.wing.color + z.MAT, data = r.dat, correlation = corPagel(0.5, phy = r.tree, fixed = FALSE, form = ~binom))
-mod00d <- gls(log(risk) ~ m.wing.color + z.MAT, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom))
-AICc(mod00a, mod00b, mod00c, mod00d) 
+## let's start by taking a pgls approach - no log transformation
+nl.mod00a <- gls(risk ~ m.wing.color + z.MAT, data = r.dat, correlation = corPagel(1, phy = r.tree, fixed = TRUE, form = ~binom))
+nl.mod00b <- gls(risk ~ m.wing.color + z.MAT, data = r.dat, correlation = corPagel(1, phy = r.tree, fixed = FALSE, form = ~binom))
+nl.mod00c <- gls(risk ~ m.wing.color + z.MAT, data = r.dat, correlation = corPagel(0.5, phy = r.tree, fixed = FALSE, form = ~binom))
+nl.mod00d <- gls(risk ~ m.wing.color + z.MAT, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom))
+AICc(nl.mod00a, nl.mod00b, nl.mod00c, nl.mod00d) 
+          # df     AICc
+# nl.mod00a  4 356.6808
+# nl.mod00b  5 131.8691
+# nl.mod00c  5 131.8691
+# nl.mod00d  4 129.8954
 
-       # df       AICc
-# mod00a  4   24.23801
-# mod00b  5 -228.60426
-# mod00c  5 -271.16569
-# mod00d  4 -230.66237
 
-## different AICc for different starting values for Pagel's lambda indicates model isn't converging well. Star phylogeny MUCH better supported than Brownian Motion
-
-summary(mod00d)
-
+summary(nl.mod00d) 
 # Generalized least squares fit by REML
-  # Model: log(risk) ~ m.wing.color + z.MAT 
-  # Data: big.dat 
-        # AIC       BIC   logLik
-  # -230.7931 -215.8727 119.3965
+  # Model: risk ~ m.wing.color + z.MAT 
+  # Data: r.dat 
+       # AIC     BIC    logLik
+  # 129.7646 144.685 -60.88232
 
 # Correlation Structure: corPagel
  # Formula: ~binom 
@@ -53,10 +48,10 @@ summary(mod00d)
      # 0 
 
 # Coefficients:
-                    # Value   Std.Error   t-value p-value
-# (Intercept)    0.04366090 0.011320971  3.856639  0.0001
-# m.wing.colory -0.04268040 0.018956774 -2.251459  0.0251
-# z.MAT          0.02148287 0.009096616  2.361633  0.0188
+                   # Value  Std.Error  t-value p-value
+# (Intercept)    1.0740541 0.02032757 52.83732  0.0000
+# m.wing.colory -0.0723496 0.03403816 -2.12555  0.0343
+# z.MAT          0.0373439 0.01633359  2.28632  0.0229
 
  # Correlation: 
               # (Intr) m.wng.
@@ -65,55 +60,58 @@ summary(mod00d)
 
 # Standardized residuals:
         # Min          Q1         Med          Q3         Max 
-# -0.50084120 -0.30184389 -0.17507497 -0.03225269  8.26127089 
+# -0.47846104 -0.28580941 -0.16839506 -0.03122421 10.05768348 
 
-# Residual standard error: 0.1600695 
+# Residual standard error: 0.2874156 
 # Degrees of freedom: 311 total; 308 residual
 
+summary(nl.mod00b) # estimate for pagel's lambda
+# Correlation Structure: corPagel
+ # Formula: ~binom 
+ # Parameter estimate(s):
+      # lambda 
+# -0.005527406 
 
-## hypothesis testing
-mod01a <- gls(log(risk) ~ m.wing.color + z.MAT, data =r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
-mod01b <- gls(log(risk) ~ m.wing.color + 1, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
-mod01c <- gls(log(risk) ~ 1 + z.MAT, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
+##
+nl.mod01a <- gls(risk ~ m.wing.color + z.MAT, data =r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
+nl.mod01b <- gls(risk ~ m.wing.color + 1, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
+nl.mod01c <- gls(risk ~ 1 + z.MAT, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
 
-anova(mod01a, mod01b) # test effect of range-wide temp
-       # Model df       AIC       BIC   logLik   Test  L.Ratio p-value
-# mod01a     1  4 -252.0302 -237.0710 130.0151                        
-# mod01b     2  3 -248.4489 -237.2295 127.2245 1 vs 2 5.581251  0.0182
+anova(nl.mod01a, nl.mod01b) # test effect of range-wide temp
+          # Model df      AIC      BIC    logLik   Test  L.Ratio p-value
+# nl.mod01a     1  4 112.0395 126.9987 -52.01975                        
+# nl.mod01b     2  3 115.2734 126.4928 -54.63670 1 vs 2 5.233905  0.0222
 
-anova(mod01a, mod01c) # test effect of male wing color
-       # Model df       AIC      BIC   logLik   Test  L.Ratio p-value
-# mod01a     1  4 -252.0302 -237.071 130.0151                        
-# mod01c     2  3 -248.9534 -237.734 127.4767 1 vs 2 5.076779  0.0242
+anova(nl.mod01a, nl.mod01c) # test effect of male wing color
+          # Model df      AIC      BIC    logLik   Test  L.Ratio p-value
+# nl.mod01a     1  4 112.0395 126.9987 -52.01975                        
+# nl.mod01c     2  3 114.5683 125.7877 -54.28415 1 vs 2 4.528813  0.0333
 
-
-### body size is thought to maybe be involved. let's see if we should have included it. 
-bs.mod00a <- gls(log(risk) ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(1, phy = r.tree, fixed = TRUE, form = ~binom))
-bs.mod00b <- gls(log(risk) ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(1, phy = r.tree, fixed = FALSE, form = ~binom))
-bs.mod00c <- gls(log(risk) ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(0.5, phy = r.tree, fixed = FALSE, form = ~binom))
-bs.mod00d <- gls(log(risk) ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom))
-AICc(bs.mod00a, bs.mod00b, bs.mod00c, bs.mod00d) 
-          # df       AICc
-# bs.mod00a  5   29.06336
-# bs.mod00b  6 -219.34738
-# bs.mod00c  6 -219.34738
-# bs.mod00d  5 -221.38211
-
-# pagel's lambda converges this time, but star phylogeny still best supported
-
-# let's test whether body size has a significant effect
-bs.mod01a <- gls(log(risk) ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
-bs.mod01b <- gls(log(risk) ~ m.wing.color + z.MAT + 1, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
-
-anova(bs.mod01a, bs.mod01b) # test effect of body size
-
-          # Model df       AIC       BIC   logLik   Test   L.Ratio p-value
-# bs.mod01a     1  5 -250.1504 -231.4514 130.0752                         
-# bs.mod01b     2  4 -252.0302 -237.0710 130.0151 1 vs 2 0.1202266  0.7288
-
-# not even close.
+### test for effect of body size
+nl.bs.mod00a <- gls(risk ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(1, phy = r.tree, fixed = TRUE, form = ~binom))
+nl.bs.mod00b <- gls(risk ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(1, phy = r.tree, fixed = FALSE, form = ~binom))
+nl.bs.mod00c <- gls(risk ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(0.5, phy = r.tree, fixed = FALSE, form = ~binom))
+nl.bs.mod00d <- gls(risk ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom))
+AICc(nl.bs.mod00a, nl.bs.mod00b, nl.bs.mod00c, nl.bs.mod00d) 
+             # df     AICc
+# nl.bs.mod00a  5 360.4783
+# nl.bs.mod00b  6 140.1708
+# nl.bs.mod00c  6 140.1708
+# nl.bs.mod00d  5 138.1236
 
 
+nl.bs.mod01a <- gls(risk ~ m.wing.color + z.MAT + z.size, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
+nl.bs.mod01b <- gls(risk ~ m.wing.color + z.MAT + 1, data = r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
+anova(nl.bs.mod01a, nl.bs.mod01b)
+             # Model df      AIC      BIC    logLik   Test      L.Ratio p-value
+# nl.bs.mod01a     1  5 114.0394 132.7384 -52.01972                            
+# nl.bs.mod01b     2  4 112.0395 126.9987 -52.01975 1 vs 2 4.900926e-05  0.9944
+
+# no evidence that body size needs to go in the model to control for anything
+
+
+
+# Number of Fisher Scoring iterations: 4
 ### since there's no effect of phylogeny, we can double check the qualitative results of these analyses using a generalized linear model with a quasipoisson error distribution.
 
 mod02 <- glm(risk ~ m.wing.color + z.MAT, data = r.dat, family = 'quasipoisson')
@@ -181,32 +179,30 @@ anova(bs.mod02, mod02, test = 'F') # test of effect of body size
 ## not even close.
 
 ###### let's look at population trends next
-
 pt.dat <- read.csv('species.ext.pt.csv')
 rownames(pt.dat) <- pt.dat$binom
 pt.tree <- read.newick('species.ext.pt.tre')
 
-## start with a pgls approach
-pt.mod00a <- gls(log(trend.num) ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(1, phy = pt.tree, fixed = TRUE, form = ~binom))
-pt.mod00b <- gls(log(trend.num) ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(1, phy = pt.tree, fixed = FALSE, form = ~binom))
-pt.mod00c <- gls(log(trend.num) ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(0.5, phy = pt.tree, fixed = FALSE, form = ~binom))
-pt.mod00d <- gls(log(trend.num) ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom))
-AICc(pt.mod00a, pt.mod00b, pt.mod00c, pt.mod00d)
 
-          # df      AICc
-# pt.mod00a  4 -304.6028
-# pt.mod00b  5 -509.2304
-# pt.mod00c  5 -509.2304
-# pt.mod00d  4 -510.9810
+## start with a pgls approach - no log transformation
+nl.pt.mod00a <- gls(trend.num ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(1, phy = pt.tree, fixed = TRUE, form = ~binom))
+nl.pt.mod00b <- gls(trend.num ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(1, phy = pt.tree, fixed = FALSE, form = ~binom))
+nl.pt.mod00c <- gls(trend.num ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(0.5, phy = pt.tree, fixed = FALSE, form = ~binom))
+nl.pt.mod00d <- gls(trend.num ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom))
+AICc(nl.pt.mod00a, nl.pt.mod00b, nl.pt.mod00c, nl.pt.mod00d)
+             # df        AICc
+# nl.pt.mod00a  4    4.893916
+# nl.pt.mod00b  5 -164.786770
+# nl.pt.mod00c  5 -164.786770
+# nl.pt.mod00d  4 -166.824397
 
-## star phylogeny is best
+summary(nl.pt.mod00d)
 
-summary(pt.mod00d)
 # Generalized least squares fit by REML
-  # Model: log(trend.num) ~ m.wing.color + z.MAT 
+  # Model: trend.num ~ m.wing.color + z.MAT 
   # Data: pt.dat 
-        # AIC       BIC logLik
-  # -511.1199 -496.4404 259.56
+        # AIC       BIC   logLik
+  # -166.9633 -152.2838 87.48164
 
 # Correlation Structure: corPagel
  # Formula: ~binom 
@@ -215,10 +211,10 @@ summary(pt.mod00d)
      # 0 
 
 # Coefficients:
-                   # Value   Std.Error  t-value p-value
-# (Intercept)    0.6804030 0.007100327 95.82699  0.0000
-# m.wing.colory  0.0275252 0.011642786  2.36415  0.0187
-# z.MAT         -0.0028771 0.005808082 -0.49535  0.6207
+                  # Value  Std.Error   t-value p-value
+# (Intercept)   1.9836280 0.01285219 154.34161  0.0000
+# m.wing.colory 0.0531245 0.02107443   2.52081  0.0122
+# z.MAT         0.0016149 0.01051312   0.15361  0.8780
 
  # Correlation: 
               # (Intr) m.wng.
@@ -226,79 +222,59 @@ summary(pt.mod00d)
 # z.MAT         -0.034  0.038
 
 # Standardized residuals:
-       # Min         Q1        Med         Q3        Max 
-# -7.0612452 -0.1381344  0.1071588  0.1411674  4.3471030 
+        # Min          Q1         Med          Q3         Max 
+# -5.65774757 -0.20546511  0.08535792  0.09715863  5.83266452 
 
-# Residual standard error: 0.0962569 
+# Residual standard error: 0.1742331 
 # Degrees of freedom: 293 total; 290 residual
 
-pt.mod01a <- gls(log(trend.num) ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = "ML")
-pt.mod01b <- gls(log(trend.num) ~ m.wing.color + 1, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = "ML")
-pt.mod01c <- gls(log(trend.num) ~ 1 + z.MAT, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = "ML")
+summary(nl.pt.mod00c) # estimate for pagel's lambda
 
-anova(pt.mod01a, pt.mod01b) # test effect of range-wide temp
-          # Model df       AIC       BIC   logLik   Test   L.Ratio p-value
-# pt.mod01a     1  4 -535.1880 -520.4673 271.5940                         
-# pt.mod01b     2  3 -536.9402 -525.8996 271.4701 1 vs 2 0.2478097  0.6186
+# Correlation Structure: corPagel
+ # Formula: ~binom 
+ # Parameter estimate(s):
+      # lambda 
+# -0.004016886 
 
-anova(pt.mod01a, pt.mod01c) # test effect of male wing color
-          # Model df       AIC       BIC   logLik   Test  L.Ratio p-value
-# pt.mod01a     1  4 -535.1880 -520.4673 271.5940                        
-# pt.mod01c     2  3 -531.5947 -520.5542 268.7973 1 vs 2 5.593274   0.018
+# likelihood ratio tests for effects
+nl.pt.mod01a <- gls(trend.num ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = "ML")
+nl.pt.mod01b <- gls(trend.num ~ m.wing.color + 1, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = "ML")
+nl.pt.mod01c <- gls(trend.num ~ 1 + z.MAT, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = "ML")
+
+anova(nl.pt.mod01a, nl.pt.mod01b) # test effect of range-wide temp
+             # Model df       AIC       BIC   logLik   Test    L.Ratio p-value
+# nl.pt.mod01a     1  4 -187.4711 -172.7504 97.73555                          
+# nl.pt.mod01b     2  3 -189.4473 -178.4067 97.72364 1 vs 2 0.02383773  0.8773
+
+anova(nl.pt.mod01a, nl.pt.mod01c) # test effect of male wing color
+             # Model df       AIC       BIC   logLik   Test  L.Ratio p-value
+# nl.pt.mod01a     1  4 -187.4711 -172.7504 97.73555                        
+# nl.pt.mod01c     2  3 -183.1202 -172.0797 94.56012 1 vs 2 6.350868  0.0117
+
+##
+nl.bs.pt.mod00a <- gls(trend.num ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(1, phy = pt.tree, fixed = TRUE, form = ~binom))
+nl.bs.pt.mod00b <- gls(trend.num ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(1, phy = pt.tree, fixed = FALSE, form = ~binom))
+nl.bs.pt.mod00c <- gls(trend.num ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(0.5, phy = pt.tree, fixed = FALSE, form = ~binom))
+nl.bs.pt.mod00d <- gls(trend.num ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom))
+AICc(nl.bs.pt.mod00a, nl.bs.pt.mod00b, nl.bs.pt.mod00c, nl.bs.pt.mod00d)
+
+                # df      AICc
+# nl.bs.pt.mod00a  5   11.7040
+# nl.bs.pt.mod00b  6 -156.4154
+# nl.bs.pt.mod00c  6 -156.4154
+# nl.bs.pt.mod00d  5 -158.4077
 
 
+# is body size mucking things up?
+nl.bs.pt.mod01a <- gls(trend.num ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = 'ML')
+nl.bs.pt.mod01b <- gls(trend.num ~ m.wing.color + z.MAT + 1, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = 'ML')
+anova(nl.bs.pt.mod01a, nl.bs.pt.mod01b)
+                # Model df       AIC       BIC   logLik   Test   L.Ratio p-value
+# nl.bs.pt.mod01a     1  5 -186.2682 -167.8674 98.13412                         
+# nl.bs.pt.mod01b     2  4 -187.4711 -172.7504 97.73555 1 vs 2 0.7971255   0.372
 
 
-# should we be including body size in these models?
-bs.pt.mod00a <- gls(log(trend.num) ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(1, phy = pt.tree, fixed = TRUE, form = ~binom))
-bs.pt.mod00b <- gls(log(trend.num) ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(1, phy = pt.tree, fixed = FALSE, form = ~binom))
-bs.pt.mod00c <- gls(log(trend.num) ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(0.5, phy = pt.tree, fixed = FALSE, form = ~binom))
-bs.pt.mod00d <- gls(log(trend.num) ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom))
-AICc(bs.pt.mod00a, bs.pt.mod00b, bs.pt.mod00c, bs.pt.mod00d)
-             # df      AICc
-# bs.pt.mod00a  5 -296.6282
-# bs.pt.mod00b  6 -499.6318
-# bs.pt.mod00c  6 -549.3972
-# bs.pt.mod00d  5 -501.2994
-
-# pagel's lambda model not converging. star phylo is best
-
-bs.pt.mod01a <- gls(log(trend.num) ~ m.wing.color + z.MAT + z.size, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = 'ML')
-bs.pt.mod01b <- gls(log(trend.num) ~ m.wing.color + z.MAT + 1, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = 'ML')
-anova(bs.pt.mod01a, bs.pt.mod01b)
-             # Model df       AIC       BIC   logLik   Test   L.Ratio p-value
-# bs.pt.mod01a     1  5 -533.9059 -515.5050 271.9529                         
-# bs.pt.mod01b     2  4 -535.1880 -520.4673 271.5940 1 vs 2 0.7178947  0.3968
-
-## no significant effect of body size, so don't need to worry about including it
-
-### generalized linear model approach
-pt.mod02 <- glm(trend.num ~ m.wing.color + z.MAT, data = pt.dat, family = 'quasipoisson')
-summary(pt.mod02)
-
-# Call:
-# glm(formula = trend.num ~ m.wing.color + z.MAT, family = "quasipoisson", 
-    # data = big.dat2)
-
-# Deviance Residuals: 
-     # Min        1Q    Median        3Q       Max  
-# -0.77427  -0.02515   0.01055   0.01200   0.67025  
-
-# Coefficients:
-               # Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)   0.6849276  0.0064400 106.355   <2e-16 ***
-# m.wing.colory 0.0264290  0.0104732   2.523   0.0122 *  
-# z.MAT         0.0008045  0.0052369   0.154   0.8780    
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-# (Dispersion parameter for quasipoisson family taken to be 0.01511968)
-
-    # Null deviance: 4.6171  on 292  degrees of freedom
-# Residual deviance: 4.5209  on 290  degrees of freedom
-# AIC: NA
-
-# Number of Fisher Scoring iterations: 4
+## use better fitting model
 
 pt.mod02b <- glm(trend.num ~ m.wing.color + 1, data = pt.dat, family = 'quasipoisson')
 pt.mod02c <- glm(trend.num ~ 1 + z.MAT, data = pt.dat, family = 'quasipoisson')
