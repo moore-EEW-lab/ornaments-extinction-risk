@@ -314,3 +314,94 @@ anova(bs.pt.mod02, pt.mod02, test = 'F') # test if adding body size improves the
 # no need to include body size as a covariate
 
 
+#### Figures ####
+
+# Fig 2a - range wide
+nl.mod01a <- gls(risk ~ m.wing.color + z.MAT, data =r.dat, correlation = corPagel(0, phy = r.tree, fixed = TRUE, form = ~binom), method = 'ML')
+library(emmeans)
+gls.out <- emmeans(nl.mod01a, specs = 'm.wing.color')
+
+gls.dat <- data.frame(gls.out)
+
+
+bgrd01 =
+  theme(axis.text = element_text(color="Black"),
+        axis.title.x = element_blank(), 
+        axis.text.x = element_text(size = 8, angle = 0, hjust = 0.5),
+        axis.title.y = element_text(size = 12), 
+        axis.text.y = element_text(size = 8),
+        panel.background = element_rect(fill = "White"),
+        panel.grid.minor=element_blank(), panel.grid.major=element_blank(),
+        axis.line.x = element_line(linetype = 'solid', color = 'black', size = 0.8),
+        axis.line.y = element_line(linetype = 'solid', color = 'black', size = 0.8),
+        legend.position = c(1,1), legend.justification = c(1,1), 
+        legend.title = element_blank(), legend.text = element_text(size = 9),
+        legend.key = element_rect(fill = 'white'),
+        plot.margin = margin(10,10,10,10))
+
+
+risk_gls_plot <-
+  ggplot(data = gls.dat, aes(x = m.wing.color, y = exp(emmean), group = m.wing.color)) +
+  geom_linerange(aes(x = m.wing.color, ymin = exp(emmean - SE), ymax = exp(emmean + SE), color = m.wing.color), size = 1) +
+  geom_point(shape = 22, size = 5, stroke = 1, aes(fill = m.wing.color, color = m.wing.color)) +
+  scale_color_manual(values = c('#8497B0', '#714D21'), guide = "none") +
+  scale_fill_manual(values = c('#DAE3F3', '#EBC06B'), guide = "none") +
+  scale_x_discrete(labels = c('Non-Ornamented\nSpecies\n(n = 200)', 'Ornamented\nSpecies\n(n = 111)')) +
+  labs(y = 'IUCN Extinction Risk') +
+  bgrd01 + 
+  theme(axis.text.x = element_text(size = 10))
+risk_gls_plot
+
+#svg('risk_gls_plot.svg', height = 3, width = 3)
+#print(risk_gls_plot)
+#dev.off()
+
+
+
+
+# Fig 2b - pop trends
+nl.pt.mod01a <- gls(trend.num ~ m.wing.color + z.MAT, data = pt.dat, correlation = corPagel(0, phy = pt.tree, fixed = TRUE, form = ~binom), method = "ML")
+
+pop.tab <- emmeans(nl.pt.mod01a, specs = 'm.wing.color')
+
+
+pop.dat <- data.frame(pop.tab)
+pop.dat$est <- pop.dat$emmean
+pop.dat$est.l.sem <- pop.dat$emmean - pop.dat$SE
+pop.dat$est.u.sem <- pop.dat$emmean + pop.dat$SE
+pop.dat$lcl <- pop.dat$lower.CL
+pop.dat$ucl <- pop.dat$upper.CL
+
+gls_trend_plot <-
+  ggplot(data = pop.dat, aes(x = m.wing.color, y = est, group = m.wing.color)) +
+  geom_linerange(aes(x = m.wing.color, ymin = est.l.sem, ymax = est.u.sem, color = m.wing.color), size = 1) +
+  geom_point(shape = 22, size = 5, stroke = 1, aes(fill = m.wing.color, color = m.wing.color)) +
+  scale_color_manual(values = c('#8497B0', '#714D21'), guide = "none") +
+  scale_fill_manual(values = c('#DAE3F3', '#EBC06B'), guide = "none") +
+  geom_hline(yintercept = 2, linetype = 32, alpha = 1, color = '#999999') +
+  scale_y_continuous(limits = c(1.96,2.056)) +
+  scale_x_discrete(labels = c('Non-Ornamented\nSpecies\n(n = 184)', 'Ornamented\nSpecies\n(n = 109)')) +
+  ylab('IUCN Demographic Trend') +
+  bgrd01+ 
+  theme(axis.text.x = element_text(size = 10))
+gls_trend_plot
+
+#svg('gls_trend_plot.svg', height = 3, width = 3)
+#print(gls_trend_plot)
+#dev.off()
+
+#trend.gls.fig <- gls.trend.plot + bgrd01
+
+#png('supp.ptrend.gls.png', height = 5, width = 2.75, units = 'in', res = 650)
+#print(trend.gls.fig)
+#dev.off()
+
+
+
+library(cowplot)
+iucn_plots <- plot_grid(risk_gls_plot, gls_trend_plot, align = "v", label_size = 12, nrow = 1, ncol = 2)
+iucn_plots
+
+svg('iucn_plots.svg', height = 3, width = 6.5)
+print(iucn_plots)
+dev.off()
