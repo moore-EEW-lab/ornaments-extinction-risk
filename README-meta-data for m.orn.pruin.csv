@@ -1,0 +1,17 @@
+Manuscript Title: Human-modified habitats imperil ornamented dragonflies less than their non-ornamented counterparts at local, regional, and continental scales
+
+Year: 2024
+
+File Name: m.orn.pruin.csv
+Description: The presence or absence of male wing ornamentation and male pruinescence for Nearctic dragonflies
+Rows: 320, not including header
+Columns: 4. binom; Family, m.wing.color; pruinosity
+
+binom: Name of the dragonfly species
+
+Family: Name of taxonomic family to which the species belongs
+
+m.wing.color; Binomial variable for whether a species does (y) or does not (n) possess at least some wing pigmentation in the cells of its wings in males
+
+pruinosity: Binomial variable for whether a species does (y) or does not (n) possess at least some pruinescence on the bodies of males 
+
