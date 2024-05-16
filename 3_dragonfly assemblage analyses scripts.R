@@ -1,5 +1,3 @@
-setwd('/Users/michaelmoore/desktop/Working Directory')
-
 
 library(lme4)
 library(lmerTest)
