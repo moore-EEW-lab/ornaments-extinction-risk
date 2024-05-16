@@ -1,4 +1,3 @@
-setwd('/Users/michaelmoore/desktop/Working Directory')
 
 library(car)
 library(plyr)
