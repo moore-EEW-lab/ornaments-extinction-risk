@@ -1,0 +1,25 @@
+##### R scripts underlying analyses and figures in Moore et al. 2024. "Human-modified habitats imperil ornamented dragonflies less than their non-ornamented counterparts at local, regional, and continental scales"
+
+### This folder contains the following script files:
+
+
+##1_population-level extinction risk scripts
+# R scripts underlying the meta-analytic analyses in main text and supplement of population-level extinction across California. Also includes R scripts to make the data panels in Figure 1.
+
+
+##2_range-wide extinction risk scripts
+# R scripts underlying the comparative analyses in main text and supplement of IUCN-designated extinction risk across the United States. Also includes R scripts to make the data panels in Figure 2
+
+
+##3_dragonfly assemblage analyses scripts
+# R scripts underlying the spatially explicit analyses in main text and supplement of dragonfly assemblages across the Midwestern United States. 
+
+
+##4_scripts to make data panels in assemblage-level figure (Figure 3)
+# R scripts underlying the data panels in Figure 3. Because spatially explicit analyses can be quite computationally intensive, the predicted values for each anthropogenic threat from the spatially explicit analyses (see script 3 above) were written into their csv files 
+# and these scripts were used to create the individual panels in figure 3 rather than having to run the spatially explicit analysis every single time you want to mess around with the figure panel
+
+
+##5_pruinescence and wing color scripts
+# R scripts to evaluate the co-distribution of pruinescence and wing coloration as described in the supplement
+
